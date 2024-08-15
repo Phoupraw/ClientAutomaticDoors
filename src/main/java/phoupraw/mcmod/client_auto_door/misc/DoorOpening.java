@@ -5,14 +5,12 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.DoorBlock;
-import net.minecraft.block.ShapeContext;
+import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.*;
@@ -60,6 +58,9 @@ public interface DoorOpening {
             BlockState state = entry.getValue();
             if (!world.getBlockState(pos).equals(state) || !isDoor(world, pos, state)) {
                 iterator.remove();
+                continue;
+            }
+            if (entity.getBlockPos().equals(pos) && state.getBlock() instanceof TrapdoorBlock && entity instanceof LivingEntity living && living.isClimbing()) {
                 continue;
             }
             VoxelShape usedShape = state.cycle(DoorBlock.OPEN).getCollisionShape(world, pos, shapeContext);
