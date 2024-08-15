@@ -8,6 +8,7 @@
     "defaultRequire": 1
   },
   "client": [
+    "minecraft.MClientPlayerEntity"
   ],
   "plugin": "phoupraw.mcmod.client_auto_door.mixins.ClientAutomaticDoorsMixinConfigPlugin",
   "priority": 10000

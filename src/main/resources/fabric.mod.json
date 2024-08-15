@@ -16,7 +16,7 @@
     "fabric-datagen": ["phoupraw.mcmod.client_auto_door.datagen.TrilevelConfigDataGen"],
     "modmenu": ["phoupraw.mcmod.client_auto_door.config.ClientAutomaticDoorsModMenuApi"]
   },
-  "environment": "*",
+  "environment": "client",
   "depends": {
     "minecraft": "*",
     "fabricloader": ">=0.15.0",
