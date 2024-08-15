@@ -81,7 +81,9 @@ repositories {
 }
 
 fabricApi {
-    configureDataGeneration()
+    configureDataGeneration {
+        strictValidation = true
+    }
 }
 
 dependencies {
@@ -160,4 +162,13 @@ remapSourcesJar {
 }
 loom {
     accessWidenerPath = file("src/main/resources/${mod_id}.accessWidener")
+    runs {
+        datagen {
+            inherit(client)
+            property("fabric-api.datagen.modid", "${mod_id}")
+        }
+        client {
+            programArg("--username=Phoupraw")
+        }
+    }
 }

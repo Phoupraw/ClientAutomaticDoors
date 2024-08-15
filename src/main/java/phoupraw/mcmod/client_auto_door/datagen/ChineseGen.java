@@ -15,12 +15,11 @@ final class ChineseGen extends FabricLanguageProvider {
     }
     @Override
     public void generateTranslations(RegistryWrapper.WrapperLookup registryLookup, TranslationBuilder b) {
-        String modName = "三级配置";
+        String modName = "客户端自动门";
         b.add(ClientAutomaticDoors.NAME_KEY, modName);
-        b.add("modmenu.summaryTranslation." + ID, "存档独立的配置库");
+        b.add("modmenu.summaryTranslation." + ID, "自动开关门");
         b.add("modmenu.descriptionTranslation." + ID, """
-          代码、全局、存档，三级配置系统。
-          - 
+          自动开关门、活板门、栅栏门。 
           """);
     }
 }

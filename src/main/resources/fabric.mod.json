@@ -2,38 +2,35 @@
   "schemaVersion": 1,
   "id": "client_auto_door",
   "version": "${version}",
-  "name": "TrilevelConfig",
-  "description": "TODO",
+  "name": "Client Automatic Doors",
+  "description": "自动开关门",
   "authors": ["Phoupraw"],
   "contact": {
-    "_homepage": "https://www.mcmod.cn/class/client_auto_door.html",
-    "_sources": "https://github.com/Phoupraw/TrilevelConfig",
-    "_issues": "https://github.com/Phoupraw/TrilevelConfig/issues"
+    "_homepage": "https://www.mcmod.cn/class/TODO.html",
+    "sources": "https://github.com/Phoupraw/ClientAutomaticDoors",
+    "issues": "https://github.com/Phoupraw/ClientAutomaticDoors/issues"
   },
   "entrypoints": {
     "main": ["phoupraw.mcmod.client_auto_door.ClientAutomaticDoors"],
     "client": ["phoupraw.mcmod.client_auto_door.ClientAutomaticDoorsClient"],
-    "fabric-datagen": ["phoupraw.mcmod.client_auto_door.datagen.TrilevelConfigDataGen"],
+    "fabric-datagen": ["phoupraw.mcmod.client_auto_door.datagen.ClientAutomaticDoorsDataGen"],
     "modmenu": ["phoupraw.mcmod.client_auto_door.config.ClientAutomaticDoorsModMenuApi"]
   },
   "environment": "client",
   "depends": {
     "minecraft": "*",
-    "fabricloader": ">=0.15.0",
-    "fabric-api": "*"
-  },
-  "recommends": {
-    "minecraft": ">=1.21"
+    "fabricloader": "*",
+    "fabric-api": "*",
+    "mixinextras": ">=0.4.0"
   },
   "mixins": ["client_auto_door.mixins.json"],
   "icon": "assets/client_auto_door/icon.png",
   "custom": {
     "modmenu": {
       "links": {
-        "_modmenu.modrinth": "https://modrinth.com/project/client_auto_door",
-        "_modmenu.curseforge": "https://www.curseforge.com/minecraft/mc-mods/client_auto_door"
-      },
-      "badges": ["library"]
+        "modmenu.modrinth": "https://modrinth.com/project/client_auto_door",
+        "modmenu.curseforge": "https://www.curseforge.com/minecraft/mc-mods/client_auto_door"
+      }
     }
   },
   "license": "MPL-2.0",
