@@ -16,7 +16,7 @@ public final class ClientAutomaticDoorsClient implements ClientModInitializer {
     }
     @Override
     public void onInitializeClient() {
-        Config.register(CADConfigs.PATH);
+        Config.register(CADConfigs.PATH, CADConfigs.ON);
         loadClasses();
     }
 }

@@ -20,6 +20,8 @@ final class EnglishGen extends FabricLanguageProvider {
         b.add("modmenu.summaryTranslation." + ID, "Automatically open and close door.");
         b.add("modmenu.descriptionTranslation." + ID, """
           Automatically open and close door, trapdoor, fence gate. 
+          Run command `/trilevel_config current|global client_auto_door.json set on 0` to disable the mod in current|all saves.
+          Run command `/trilevel_config current|global client_auto_door.json set on` to enable the mod in current|all saves.
           """);
         //b.add(Trifle.NAME_KEY, "Torches in Water");
         //b.add("modmenu.summaryTranslation." + ID, "Place torches in water!");

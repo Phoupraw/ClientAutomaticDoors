@@ -20,6 +20,8 @@ final class ChineseGen extends FabricLanguageProvider {
         b.add("modmenu.summaryTranslation." + ID, "自动开关门");
         b.add("modmenu.descriptionTranslation." + ID, """
           自动开关门、活板门、栅栏门。 
+          执行命令`/trilevel_config current|global client_auto_door.json set on 0`以在当前|所有存档关闭此模组；
+          执行命令`/trilevel_config current|global client_auto_door.json set on`以在当前|所有存档开启此模组。
           """);
     }
 }
