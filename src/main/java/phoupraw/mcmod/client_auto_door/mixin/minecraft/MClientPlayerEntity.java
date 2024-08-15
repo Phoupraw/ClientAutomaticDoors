@@ -25,14 +25,10 @@ import phoupraw.mcmod.client_auto_door.mixins.minecraft.MMClientPlayerEntity;
 abstract class MClientPlayerEntity extends AbstractClientPlayerEntity {
     @Shadow
     @Final
-    protected MinecraftClient client;
-    @Shadow
-    @Final
     public ClientPlayNetworkHandler networkHandler;
     @Shadow
-    public abstract StatHandler getStatHandler();
-    @Shadow
-    public abstract ClientRecipeBook getRecipeBook();
+    @Final
+    protected MinecraftClient client;
     @Shadow
     private boolean lastSneaking;
     @Shadow
@@ -48,6 +44,10 @@ abstract class MClientPlayerEntity extends AbstractClientPlayerEntity {
         
         //adjustMovementForCollisions(this,movement)
         
-        MMClientPlayerEntity.openDoor(client, (ClientPlayerEntity) (Object) this, movementType, movement);
+        MMClientPlayerEntity.openDoor((ClientPlayerEntity) (Object) this, movementType, movement, client);
     }
+    @Shadow
+    public abstract StatHandler getStatHandler();
+    @Shadow
+    public abstract ClientRecipeBook getRecipeBook();
 }
