@@ -2,7 +2,6 @@ package phoupraw.mcmod.client_auto_door.misc;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.*;
@@ -17,9 +16,10 @@ import net.minecraft.util.math.*;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import phoupraw.mcmod.client_auto_door.config.CADConfigs;
+import phoupraw.mcmod.trilevel_config.api.ClientConfigs;
 
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 
 @Environment(EnvType.CLIENT)
@@ -29,28 +29,22 @@ public interface DoorOpening {
       .comparingInt(Vec3i::getY)
       .thenComparingInt(Vec3i::getX)
       .thenComparingInt(Vec3i::getZ)));
-    static List<Box> getAABBs(Entity entity) {
-        List<Box> boxes = new ObjectArrayList<>();
-        for (var i = entity; i != null; i = i.getVehicle()) {
-            boxes.add(i.getBoundingBox());
-        }
-        return boxes;
-    }
     static void openDoor(Entity entity, Vec3d movement, MinecraftClient client, Box swimming, ClientPlayerEntity player) {
+        if (!ClientConfigs.getOrCreate(CADConfigs.PATH).get(CADConfigs.ON)) return;
         ClientPlayerInteractionManager interactor = client.interactionManager;
         if (interactor == null) return;
         World world = entity.getWorld();
         Box entityBox = entity.getBoundingBox();
-        Vec3d eyePos = entity.getEyePos();
+        Vec3d eyePos = player.getEyePos();
         NO_CLIP.set(DoorOpening.class);
         Vec3d adjusted = entity.adjustMovementForCollisions(movement);
         NO_CLIP.remove();
-        Vec3d max = new Vec3d(
-          absMax(movement.getX(), adjusted.getX()),
-          absMax(movement.getY(), adjusted.getY()),
-          absMax(movement.getZ(), adjusted.getZ()));
-        Box stretched = entityBox.stretch(max);
-        Box moved = entityBox.offset(max);
+        //Vec3d max = new Vec3d(
+        //  absMax(movement.getX(), adjusted.getX()),
+        //  absMax(movement.getY(), adjusted.getY()),
+        //  absMax(movement.getZ(), adjusted.getZ()));
+        Box stretched = entityBox.stretch(adjusted);
+        //Box moved = entityBox.offset(max);
         ShapeContext shapeContext = ShapeContext.of(entity);
         for (var iterator = DoorOpening.OPENED.entrySet().iterator(); iterator.hasNext(); ) {
             var entry = iterator.next();
@@ -64,7 +58,8 @@ public interface DoorOpening {
                 continue;
             }
             VoxelShape usedShape = state.cycle(DoorBlock.OPEN).getCollisionShape(world, pos, shapeContext);
-            if ((doesCollide(usedShape, pos, swimming) || !doesCollide(usedShape, pos, stretched) || world.getBlockCollisions(entity, entityBox).iterator().hasNext()) && use(player, pos, eyePos, world, state, interactor)) {
+            boolean inBlock = entity == player && (doesCollide(usedShape, pos, swimming) || world.getBlockCollisions(entity, entityBox).iterator().hasNext());
+            if ((inBlock || !doesCollide(usedShape, pos, stretched)) && use(player, pos, eyePos, world, state, interactor)) {
                 iterator.remove();
             }
         }
