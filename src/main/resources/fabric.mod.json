@@ -18,9 +18,7 @@
   },
   "environment": "client",
   "depends": {
-    "minecraft": "*",
     "fabricloader": "*",
-    "fabric-api": "*",
     "mixinextras": ">=0.4.0"
   },
   "mixins": ["client_auto_door.mixins.json"],
@@ -29,7 +27,7 @@
     "modmenu": {
       "links": {
         "modmenu.modrinth": "https://modrinth.com/project/client_auto_door",
-        "modmenu.curseforge": "https://www.curseforge.com/minecraft/mc-mods/client_auto_door"
+        "modmenu.curseforge": "https://www.curseforge.com/minecraft/mc-mods/client-auto-door"
       }
     }
   },

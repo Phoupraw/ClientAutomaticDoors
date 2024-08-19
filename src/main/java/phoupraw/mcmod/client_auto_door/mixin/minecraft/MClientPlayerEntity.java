@@ -21,14 +21,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import phoupraw.mcmod.client_auto_door.mixins.minecraft.MMClientPlayerEntity;
 
 @Environment(EnvType.CLIENT)
-@Mixin(ClientPlayerEntity.class)
+@Mixin(value = ClientPlayerEntity.class, priority = 10000)
 abstract class MClientPlayerEntity extends AbstractClientPlayerEntity {
     @Shadow
     @Final
     public ClientPlayNetworkHandler networkHandler;
     @Shadow
     @Final
-    protected MinecraftClient client;
+    public MinecraftClient client;
     @Shadow
     private boolean lastSneaking;
     @Shadow
