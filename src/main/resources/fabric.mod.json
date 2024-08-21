@@ -6,7 +6,7 @@
   "description": "自动开关门",
   "authors": ["Phoupraw"],
   "contact": {
-    "_homepage": "https://www.mcmod.cn/class/TODO.html",
+    "_homepage": "https://www.mcmod.cn/class/16168.html",
     "sources": "https://github.com/Phoupraw/ClientAutomaticDoors",
     "issues": "https://github.com/Phoupraw/ClientAutomaticDoors/issues"
   },
@@ -26,8 +26,8 @@
   "custom": {
     "modmenu": {
       "links": {
-        "modmenu.modrinth": "https://modrinth.com/project/client_auto_door",
-        "modmenu.curseforge": "https://www.curseforge.com/minecraft/mc-mods/client-auto-door"
+        "modmenu.modrinth": "https://modrinth.com/project/client_automatic_doors",
+        "modmenu.curseforge": "https://www.curseforge.com/minecraft/mc-mods/client-automatic-doors"
       }
     }
   },

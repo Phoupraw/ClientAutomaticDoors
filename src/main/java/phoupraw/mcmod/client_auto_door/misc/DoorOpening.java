@@ -31,6 +31,7 @@ public interface DoorOpening {
       .thenComparingInt(Vec3i::getZ)));
     static void openDoor(Entity entity, Vec3d movement, MinecraftClient client, Box swimming, ClientPlayerEntity player) {
         if (!ClientConfigs.getOrCreate(CADConfigs.PATH).get(CADConfigs.ON)) return;
+        if (entity.isSneaking()) return;
         ClientPlayerInteractionManager interactor = client.interactionManager;
         if (interactor == null) return;
         World world = entity.getWorld();
