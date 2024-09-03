@@ -19,7 +19,8 @@
   "environment": "client",
   "depends": {
     "fabricloader": "*",
-    "mixinextras": ">=0.4.0"
+    "mixinextras": ">=0.4.0",
+    "trilevel_config": "*"
   },
   "mixins": ["client_auto_door.mixins.json"],
   "icon": "assets/client_auto_door/icon.png",

@@ -4,7 +4,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import phoupraw.mcmod.client_auto_door.config.CADConfigs;
-import phoupraw.mcmod.trilevel_config.api.Config;
+import phoupraw.mcmod.trilevel_config.api.Configs;
 
 @Environment(EnvType.CLIENT)
 public final class ClientAutomaticDoorsClient implements ClientModInitializer {
@@ -16,7 +16,7 @@ public final class ClientAutomaticDoorsClient implements ClientModInitializer {
     }
     @Override
     public void onInitializeClient() {
-        Config.register(CADConfigs.PATH, CADConfigs.ON);
+        Configs.register(CADConfigs.PATH, CADConfigs.ON);
         loadClasses();
     }
 }
