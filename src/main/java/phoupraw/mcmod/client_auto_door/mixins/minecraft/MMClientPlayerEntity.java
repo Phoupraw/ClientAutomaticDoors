@@ -15,10 +15,7 @@ import phoupraw.mcmod.client_auto_door.misc.DoorOpening;
 public interface MMClientPlayerEntity {
     static void openDoor(ClientPlayerEntity self, MovementType movementType, Vec3d movement, MinecraftClient client) {
         if (movementType != MovementType.SELF /*|| self.hasVehicle()*/) return;
-        Entity vehicle = self;
-        while (vehicle.hasVehicle()) {
-            vehicle = vehicle.getVehicle();
-        }
+        Entity vehicle = self.getRootVehicle();
         DoorOpening.openDoor(vehicle, movement, client, vehicle instanceof LivingEntity living ? living.getBoundingBox(EntityPose.SWIMMING).offset(self.getPos()) : self.getBoundingBox(), self);
     }
 }

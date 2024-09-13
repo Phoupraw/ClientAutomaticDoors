@@ -6,7 +6,7 @@
   "description": "自动开关门",
   "authors": ["Phoupraw"],
   "contact": {
-    "_homepage": "https://www.mcmod.cn/class/16168.html",
+    "homepage": "https://www.mcmod.cn/class/16168.html",
     "sources": "https://github.com/Phoupraw/ClientAutomaticDoors",
     "issues": "https://github.com/Phoupraw/ClientAutomaticDoors/issues"
   },

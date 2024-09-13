@@ -6,3 +6,6 @@
 - Imcompatible with some client mods.
 - Try interacting doors when sneaking.
 - Web links.
+# 0.1.2
+## Fix
+- Free camera triggers opening door.
