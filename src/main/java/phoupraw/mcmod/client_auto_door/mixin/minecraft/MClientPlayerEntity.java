@@ -5,7 +5,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.recipebook.ClientRecipeBook;
 import net.minecraft.client.world.ClientWorld;
@@ -25,25 +24,12 @@ import phoupraw.mcmod.client_auto_door.mixins.minecraft.MMClientPlayerEntity;
 abstract class MClientPlayerEntity extends AbstractClientPlayerEntity {
     @Shadow
     @Final
-    public ClientPlayNetworkHandler networkHandler;
-    @Shadow
-    @Final
     public MinecraftClient client;
-    @Shadow
-    private boolean lastSneaking;
-    @Shadow
-    private boolean lastSprinting;
     public MClientPlayerEntity(ClientWorld world, GameProfile profile) {
         super(world, profile);
     }
     @Inject(method = "move", at = @At("HEAD"))
     private void openDoor(MovementType movementType, Vec3d movement, CallbackInfo ci) {
-        //World world =getWorld();
-        //var aabbs = Utils.getAABBs(this);
-        //ClientPlayerEntity copy = new ClientPlayerEntity(client, clientWorld, networkHandler, getStatHandler(), getRecipeBook(), lastSneaking, lastSprinting);
-        
-        //adjustMovementForCollisions(this,movement)
-        
         MMClientPlayerEntity.openDoor((ClientPlayerEntity) (Object) this, movementType, movement, client);
     }
     @Shadow
