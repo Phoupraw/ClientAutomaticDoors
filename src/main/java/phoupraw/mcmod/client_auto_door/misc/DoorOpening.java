@@ -4,7 +4,9 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.*;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.ShapeContext;
+import net.minecraft.block.TrapdoorBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
@@ -14,9 +16,9 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.*;
 import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import phoupraw.mcmod.client_auto_door.config.CADConfigs;
+import phoupraw.mcmod.client_auto_door.events.ToggledBlockState;
 import phoupraw.mcmod.trilevel_config.api.ClientConfigs;
 
 import java.util.Comparator;
@@ -41,26 +43,26 @@ public interface DoorOpening {
         NO_CLIP.set(DoorOpening.class);
         Vec3d adjusted = entity.adjustMovementForCollisions(movement);
         NO_CLIP.remove();
-        //Vec3d max = new Vec3d(
-        //  absMax(movement.getX(), adjusted.getX()),
-        //  absMax(movement.getY(), adjusted.getY()),
-        //  absMax(movement.getZ(), adjusted.getZ()));
         Box stretched = entityBox.stretch(adjusted);
-        //Box moved = entityBox.offset(max);
         ShapeContext shapeContext = ShapeContext.of(entity);
         for (var iterator = DoorOpening.OPENED.entrySet().iterator(); iterator.hasNext(); ) {
             var entry = iterator.next();
             BlockPos pos = entry.getKey();
             BlockState state = entry.getValue();
-            if (!world.getBlockState(pos).equals(state) || !isDoor(world, pos, state)) {
+            if (!world.getBlockState(pos).equals(state)) {
+                iterator.remove();
+                continue;
+            }
+            BlockState toggledState = ToggledBlockState.invoke(world, pos, state, player);
+            if (toggledState.isAir()) {
                 iterator.remove();
                 continue;
             }
             if (entity.getBlockPos().equals(pos) && state.getBlock() instanceof TrapdoorBlock && entity instanceof LivingEntity living && living.isClimbing()) {
-                continue;
+                continue;//防止爬活板门梯子时把活板门关上导致爬不上去
             }
-            VoxelShape usedShape = state.cycle(DoorBlock.OPEN).getCollisionShape(world, pos, shapeContext);
-            boolean inBlock = entity == player && (doesCollide(usedShape, pos, swimming) || world.getBlockCollisions(entity, entityBox).iterator().hasNext());
+            VoxelShape usedShape = toggledState.getCollisionShape(world, pos, shapeContext);
+            boolean inBlock = entity == player && (doesCollide(usedShape, pos, swimming) || world.getBlockCollisions(entity, entityBox).iterator().hasNext());//防止把头部的门关了导致玩家的空间被挤压而使站姿变为泳姿（爬行姿态）
             if ((inBlock || !doesCollide(usedShape, pos, stretched)) && use(player, pos, eyePos, world, state, interactor)) {
                 iterator.remove();
             }
@@ -77,7 +79,8 @@ public interface DoorOpening {
                 continue;
             }
             BlockState state = world.getBlockState(pos);
-            if (!isDoor(world, pos, state)) {
+            BlockState toggledState = ToggledBlockState.invoke(world, pos, state, player);
+            if (toggledState.isAir()) {
                 continue;
             }
             VoxelShape shape = state.getCollisionShape(world, pos, shapeContext);
@@ -85,7 +88,7 @@ public interface DoorOpening {
                 continue;
             }
             if (!doesCollide(shape, pos, entityBox) && doesCollide(shape, pos, stretched)) {
-                VoxelShape usedShape = state.cycle(DoorBlock.OPEN).getCollisionShape(world, pos, shapeContext);
+                VoxelShape usedShape = toggledState.getCollisionShape(world, pos, shapeContext);
                 if ((doesCollide(usedShape, pos, entityBox) || !doesCollide(usedShape, pos, stretched)) && use(player, pos, eyePos, world, state, interactor)) {
                     DoorOpening.OPENED.put(pos.toImmutable(), world.getBlockState(pos));
                 }
@@ -112,11 +115,8 @@ public interface DoorOpening {
         }
         if (interactor.interactBlock(player, Hand.MAIN_HAND, hitResult).isAccepted()) {
             BlockState usedState = world.getBlockState(pos);
-            return usedState.contains(DoorBlock.OPEN) && state.get(DoorBlock.OPEN) != usedState.get(DoorBlock.OPEN);
+            return !state.getEntries().equals(usedState.getEntries());
         }
         return false;
-    }
-    static boolean isDoor(BlockView world, BlockPos pos, BlockState state) {
-        return state.contains(DoorBlock.OPEN) && !(state.isOf(Blocks.IRON_DOOR) || state.isOf(Blocks.IRON_TRAPDOOR));
     }
 }
