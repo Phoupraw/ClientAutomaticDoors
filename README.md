@@ -11,3 +11,7 @@
 ## 配置
 - 执行命令`/trilevel_config current|global client_auto_door.json set on 0`以在当前或所有存档关闭此模组；
 - 执行命令`/trilevel_config current|global client_auto_door.json set on`以在当前或所有存档开启此模组。
+## 兼容性
+- 支持所有有原版标签的方块。
+- 支持《Dramatic Doors》。
+- 提供API `phoupraw.mcmod.client_auto_door.events.ToggledBlockState.EVENT`供其它模组注册自定义方块。

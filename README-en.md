@@ -11,3 +11,7 @@ Purely client side mod. Based on movement data in client, it predicts doors that
 ## Config
 - Run command `/trilevel_config current|global client_auto_door.json set on 0` to disable the mod in current|all saves.
 - Run command `/trilevel_config current|global client_auto_door.json set on` to enable the mod in current|all saves.
+## Compability
+- Support all blocks that have vanilla tags.
+- Support _Dramatic Doors_.
+- Provide API `phoupraw.mcmod.client_auto_door.events.ToggledBlockState.EVENT` for other mods to register custom blocks.
