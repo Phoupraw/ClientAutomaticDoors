@@ -9,6 +9,8 @@
 # 0.1.2
 ## Fix
 - Free camera triggers opening door.
-# 0.1.3
+# 0.2.0
+## New
+- Added the support to _Dramatic Doors_.
 ## Fix
 - Some blocks that have `open` block state but aren't doors are considered as doors.

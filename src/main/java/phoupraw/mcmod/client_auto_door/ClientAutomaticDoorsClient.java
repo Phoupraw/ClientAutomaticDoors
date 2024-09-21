@@ -5,6 +5,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import phoupraw.mcmod.client_auto_door.config.CADConfigs;
+import phoupraw.mcmod.client_auto_door.modules.DramaticDoors;
 import phoupraw.mcmod.client_auto_door.modules.Vanilla;
 import phoupraw.mcmod.trilevel_config.api.Configs;
 
@@ -20,5 +21,6 @@ public final class ClientAutomaticDoorsClient implements ClientModInitializer {
     public void onInitializeClient() {
         Configs.register(CADConfigs.PATH, CADConfigs.ON);
         loadClass(Vanilla.class);
+        loadClass(DramaticDoors.class);
     }
 }

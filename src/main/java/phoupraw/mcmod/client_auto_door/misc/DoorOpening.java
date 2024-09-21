@@ -34,12 +34,12 @@ public interface DoorOpening {
     static void openDoor(Entity entity, Vec3d movement, MinecraftClient client, Box swimming, ClientPlayerEntity player) {
         if (!ClientConfigs.getOrCreate(CADConfigs.PATH).get(CADConfigs.ON)) return;
         if (client.player != player) return;//防止自由相机
-        if (entity.isSneaking()) return;
+        if (player.isSneaking()) return;
         ClientPlayerInteractionManager interactor = client.interactionManager;
         if (interactor == null) return;
         World world = entity.getWorld();
         Box entityBox = entity.getBoundingBox();
-        Vec3d eyePos = player.getEyePos();
+        Vec3d eyePos = entity.getEyePos();
         NO_CLIP.set(DoorOpening.class);
         Vec3d adjusted = entity.adjustMovementForCollisions(movement);
         NO_CLIP.remove();
@@ -109,9 +109,10 @@ public interface DoorOpening {
     static boolean use(ClientPlayerEntity player, BlockPos pos, Vec3d eyePos, World world, BlockState state, ClientPlayerInteractionManager interactor) {
         Vec3d center = pos.toCenterPos();
         Vec3d end = eyePos.lerp(center, 2);
-        BlockHitResult hitResult = world.raycastBlock(eyePos, end, pos.toImmutable(), state.getRaycastShape(world, pos), state);
+        BlockPos immutable = pos.toImmutable();
+        BlockHitResult hitResult = world.raycastBlock(eyePos, end, immutable, state.getRaycastShape(world, pos), state);
         if (hitResult == null) {
-            hitResult = new BlockHitResult(center, Direction.UP, pos.toImmutable(), false);
+            hitResult = new BlockHitResult(center, Direction.UP, immutable, false);
         }
         if (interactor.interactBlock(player, Hand.MAIN_HAND, hitResult).isAccepted()) {
             BlockState usedState = world.getBlockState(pos);
