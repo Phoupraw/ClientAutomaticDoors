@@ -9,9 +9,11 @@ import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MovementType;
 import net.minecraft.util.math.Vec3d;
+import org.jetbrains.annotations.ApiStatus;
 import phoupraw.mcmod.client_auto_door.misc.DoorOpening;
 
 @Environment(EnvType.CLIENT)
+@ApiStatus.Internal
 public interface MMClientPlayerEntity {
     static void openDoor(ClientPlayerEntity self, MovementType movementType, Vec3d movement, MinecraftClient client) {
         if (movementType != MovementType.SELF /*|| self.hasVehicle()*/) return;

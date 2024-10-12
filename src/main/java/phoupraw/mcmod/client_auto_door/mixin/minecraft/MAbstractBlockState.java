@@ -20,7 +20,7 @@ import phoupraw.mcmod.client_auto_door.mixins.minecraft.MMAbstractBlockState;
 abstract class MAbstractBlockState {
     @WrapMethod(method = "getCollisionShape(Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/ShapeContext;)Lnet/minecraft/util/shape/VoxelShape;")
     private VoxelShape noClip(BlockView world, BlockPos pos, ShapeContext context, Operation<VoxelShape> original) {
-        return MMAbstractBlockState.noClip(asBlockState(), world, pos) ? VoxelShapes.empty() : original.call(world, pos, context);
+        return MMAbstractBlockState.noClip(asBlockState(), world, pos, context) ? VoxelShapes.empty() : original.call(world, pos, context);
     }
     @WrapMethod(method = "getCollisionShape(Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/util/shape/VoxelShape;")
     private VoxelShape noClip(BlockView world, BlockPos pos, Operation<VoxelShape> original) {
