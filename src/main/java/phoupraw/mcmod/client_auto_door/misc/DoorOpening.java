@@ -38,7 +38,7 @@ public interface DoorOpening {
     static void openDoor(Entity entity, Vec3d movement, MinecraftClient client, Box swimming, ClientPlayerEntity player) {
         if (!ClientConfigs.getOrCreate(CADConfigs.PATH).get(CADConfigs.ON)) return;
         if (client.player != player) return;//防止自由相机
-        if (player.isSneaking()) return;
+        if (player.isSneaking() || entity.noClip) return;
         ClientPlayerInteractionManager interactor = client.interactionManager;
         if (interactor == null) return;
         World world = entity.getWorld();
