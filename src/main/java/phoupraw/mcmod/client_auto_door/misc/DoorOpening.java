@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.block.TrapdoorBlock;
@@ -14,6 +15,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.item.Items;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.*;
@@ -36,9 +38,9 @@ public interface DoorOpening {
       .thenComparingInt(Vec3i::getZ)));
     @ApiStatus.Internal
     static void openDoor(Entity entity, Vec3d movement, MinecraftClient client, Box swimming, ClientPlayerEntity player) {
-        if (!ClientConfigs.getOrCreate(CADConfigs.PATH).get(CADConfigs.ON)) return;
-        if (client.player != player) return;//防止自由相机
-        if (player.isSneaking() || entity.noClip) return;
+        if (!shouldAct(client, player, entity)) {
+            return;
+        }
         ClientPlayerInteractionManager interactor = client.interactionManager;
         if (interactor == null) return;
         World world = entity.getWorld();
@@ -156,8 +158,10 @@ public interface DoorOpening {
     static void onStartTick(ClientWorld world) {
         var client = MinecraftClient.getInstance();
         var player = client.player;
-        if (player.isSneaking()) return;
         var entity = player.getRootVehicle();
+        if (!shouldAct(client, player, entity)) {
+            return;
+        }
         var movement = player.getVelocity();
         Box swimming = entity instanceof LivingEntity living ? living.getBoundingBox(EntityPose.SWIMMING).offset(entity.getPos()) : entity.getBoundingBox();
         ClientPlayerInteractionManager interactor = client.interactionManager;
@@ -191,5 +195,17 @@ public interface DoorOpening {
                 iterator.remove();
             }
         }
+    }
+    static boolean shouldAct(MinecraftClient client, ClientPlayerEntity player, Entity vehicle) {
+        if (!ClientConfigs.getOrCreate(CADConfigs.PATH).get(CADConfigs.ON)) return false;
+        if (client.player != player) return false;//防止自由相机
+        if (player.isSneaking() || vehicle.noClip) return false;
+        if (FabricLoader.getInstance().isModLoaded("litematica") && (player.getMainHandStack().isOf(Items.STICK) || player.getOffHandStack().isOf(Items.STICK))) {
+            return false;
+        }
+        if (FabricLoader.getInstance().isModLoaded("worldedit") && (player.getMainHandStack().isOf(Items.WOODEN_AXE))) {
+            return false;
+        }
+        return true;
     }
 }
