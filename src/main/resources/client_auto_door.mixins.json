@@ -3,7 +3,7 @@
   "package": "phoupraw.mcmod.client_auto_door.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "minecraft.AEntity"
+    "minecraft.AEntity", "minecraft.APlayerEntity"
   ],
   "injectors": {
     "defaultRequire": 1
