@@ -27,7 +27,7 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import phoupraw.mcmod.client_auto_door.config.CADConfigs;
-import phoupraw.mcmod.client_auto_door.events.DoorToggler;
+import phoupraw.mcmod.client_auto_door.events.BlockShapeToggler;
 import phoupraw.mcmod.client_auto_door.events.ToggledBlockState;
 import phoupraw.mcmod.trilevel_config.api.ClientConfigs;
 
@@ -87,10 +87,10 @@ public interface DoorOpening {
             ) {
                 if (OPENED.containsKey(pos)) continue;
                 BlockState state = world.getBlockState(pos);
-                DoorToggler toggler = DoorToggler.LOOKUP.find(world, pos, state, null, entity);
+                BlockShapeToggler toggler = BlockShapeToggler.LOOKUP.find(world, pos, state, null, entity);
                 if (toggler == null) continue;
                 try (var t2 = t.openNested()) {
-                    var positions = toggler.toggleDoor(player, t2);
+                    var positions = toggler.toggle(player, t2);
                     if (positions.isEmpty()) continue;
                     for (BlockPos pos1 : positions) {
                         for (Direction direction : RedstoneView.DIRECTIONS) {

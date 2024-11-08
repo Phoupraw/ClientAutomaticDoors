@@ -19,7 +19,7 @@ import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockCollisionSpliterator;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.ApiStatus;
-import phoupraw.mcmod.client_auto_door.events.DoorToggler;
+import phoupraw.mcmod.client_auto_door.events.BlockShapeToggler;
 import phoupraw.mcmod.client_auto_door.misc.DoorOpening;
 import phoupraw.mcmod.client_auto_door.mixin.minecraft.AEntity;
 
@@ -69,9 +69,9 @@ public interface MMClientPlayerEntity {
                 }
                 BlockPos pos = pair.first().toImmutable();
                 BlockState state = world.getBlockState(pos);
-                DoorToggler toggler = DoorToggler.LOOKUP.find(world, pos, state, null, vehicle);
+                BlockShapeToggler toggler = BlockShapeToggler.LOOKUP.find(world, pos, state, null, vehicle);
                 if (toggler == null) continue;
-                if (toggler.toggleDoor(self, t).isEmpty()) {
+                if (toggler.toggle(self, t).isEmpty()) {
                     return;
                 }
                 shapes.add(shape);
