@@ -13,10 +13,12 @@ import net.minecraft.entity.MovementType;
 import net.minecraft.util.function.BooleanBiFunction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockCollisionSpliterator;
+import net.minecraft.world.RedstoneView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.ApiStatus;
 import phoupraw.mcmod.client_auto_door.events.BlockShapeToggler;
@@ -71,10 +73,23 @@ public interface MMClientPlayerEntity {
                 BlockState state = world.getBlockState(pos);
                 BlockShapeToggler toggler = BlockShapeToggler.LOOKUP.find(world, pos, state, null, vehicle);
                 if (toggler == null) continue;
-                if (toggler.toggle(self, t).isEmpty()) {
-                    return;
+                open:
+                try (var t2 = t.openNested()) {
+                    Collection<BlockPos> positions = toggler.toggle(self, t2);
+                    if (positions.isEmpty()) {
+                        return;
+                    }
+                    for (BlockPos pos1 : positions) {
+                        for (Direction direction : RedstoneView.DIRECTIONS) {
+                            BlockPos pos2 = pos1.offset(direction);
+                            if (!world.getBlockState(pos2).canPlaceAt(world, pos2)) {
+                                break open;
+                            }
+                        }
+                    }
+                    t2.commit();
+                    shapes.add(shape);
                 }
-                shapes.add(shape);
             }
             var adjusted = VoxelShapes.cuboid(vehicleBox.stretch(vehicle.invokeAdjustMovementForCollisions(movement)));
             for (var shape : shapes) {
