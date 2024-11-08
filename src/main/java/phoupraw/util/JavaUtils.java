@@ -1,5 +1,6 @@
 package phoupraw.util;
 
+import lombok.SneakyThrows;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.function.BiFunction;
@@ -17,5 +18,10 @@ public interface JavaUtils {
      */
     static <T, U> U secondOfTwo(T first, U second) {
         return second;
+    }
+    @SuppressWarnings("unchecked")
+    @SneakyThrows
+    static <T> Class<T> findClassOrThrow(String className) {
+        return (Class<T>) Class.forName(className);
     }
 }

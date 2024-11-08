@@ -1,22 +1,16 @@
-package phoupraw.mcmod.client_auto_door.misc;
+package phoupraw.mcmod.client_auto_door.togglers;
 
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.DoorBlock;
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
 import phoupraw.mcmod.client_auto_door.events.BlockShapeToggler;
 import phoupraw.mcmod.util.MCUtils;
@@ -25,10 +19,6 @@ import java.util.Collection;
 import java.util.Set;
 
 public class OpenToggler extends SnapshotParticipant<Boolean> implements BlockShapeToggler {
-    @ApiStatus.Internal
-    public static @Nullable BlockShapeToggler find(World world, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, Entity context) {
-        return (state.isIn(BlockTags.TRAPDOORS) && !state.isOf(Blocks.IRON_TRAPDOOR) || state.isIn(BlockTags.FENCE_GATES)) && state.contains(DoorBlock.OPEN) ? new OpenToggler(world, pos, state) : null;
-    }
     protected final World world;
     protected final BlockPos pos;
     protected final BlockState state;

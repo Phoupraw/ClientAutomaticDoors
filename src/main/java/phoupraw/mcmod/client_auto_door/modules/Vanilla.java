@@ -8,16 +8,24 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.DoorBlock;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.Items;
+import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 import phoupraw.mcmod.client_auto_door.config.CADConfigs;
 import phoupraw.mcmod.client_auto_door.events.BlockShapeToggler;
+import phoupraw.mcmod.client_auto_door.togglers.DoorToggler;
+import phoupraw.mcmod.client_auto_door.togglers.OpenToggler;
 import phoupraw.mcmod.trilevel_config.api.ClientConfigs;
 import phoupraw.mcmod.util.MCUtils;
 
@@ -92,5 +100,13 @@ public interface Vanilla {
                 t.commit();
             }
         }
+    }
+    @ApiStatus.Internal
+    static @Nullable BlockShapeToggler findTrapdoorAndFencGate(World world, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, Entity context) {
+        return (state.isIn(BlockTags.TRAPDOORS) && !state.isOf(Blocks.IRON_TRAPDOOR) || state.isIn(BlockTags.FENCE_GATES)) && state.contains(DoorBlock.OPEN) ? new OpenToggler(world, pos, state) : null;
+    }
+    @ApiStatus.Internal
+    static @Nullable BlockShapeToggler findDoor(World world, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, Entity context) {
+        return state.isIn(BlockTags.DOORS) && !state.isOf(Blocks.IRON_DOOR) && state.contains(DoorBlock.OPEN) && state.contains(DoorBlock.HALF) ? new DoorToggler(world, pos, state) : null;
     }
 }
