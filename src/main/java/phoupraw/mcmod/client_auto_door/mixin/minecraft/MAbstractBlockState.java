@@ -1,5 +1,6 @@
 package phoupraw.mcmod.client_auto_door.mixin.minecraft;
 
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.fabricmc.api.EnvType;
@@ -13,6 +14,7 @@ import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
 import phoupraw.mcmod.client_auto_door.mixins.minecraft.MMAbstractBlockState;
 
 @Environment(EnvType.CLIENT)
@@ -28,4 +30,8 @@ abstract class MAbstractBlockState {
     }
     @Shadow
     protected abstract BlockState asBlockState();
+    @ModifyReturnValue(method = "canPlaceAt", at = @At("RETURN"))
+    private boolean simulate(boolean original) {
+        return MMAbstractBlockState.simulate(original);
+    }
 }

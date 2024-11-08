@@ -15,6 +15,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Items;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -22,7 +23,9 @@ import net.minecraft.util.math.*;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import phoupraw.mcmod.client_auto_door.config.CADConfigs;
+import phoupraw.mcmod.client_auto_door.events.ShouldNotOpen;
 import phoupraw.mcmod.client_auto_door.events.ToggledBlockState;
 import phoupraw.mcmod.trilevel_config.api.ClientConfigs;
 
@@ -31,6 +34,7 @@ import java.util.Map;
 
 @Environment(EnvType.CLIENT)
 public interface DoorOpening {
+    //TODO 好像有点卡，得删了
     ThreadLocal<Object> NO_CLIP = new ThreadLocal<>();
     Map<BlockPos, BlockState> OPENED = Object2ObjectMaps.synchronize(new Object2ObjectRBTreeMap<>(Comparator
       .comparingInt(Vec3i::getY)
@@ -45,7 +49,6 @@ public interface DoorOpening {
         if (interactor == null) return;
         World world = entity.getWorld();
         Box entityBox = entity.getBoundingBox();
-        Vec3d eyePos = entity.getEyePos();
         NO_CLIP.set(DoorOpening.class);
         Vec3d adjusted = entity.adjustMovementForCollisions(movement);
         NO_CLIP.remove();
@@ -91,6 +94,9 @@ public interface DoorOpening {
             if (toggledState.isAir()) {
                 continue;
             }
+            if (Boolean.TRUE.equals(ShouldNotOpen.EVENT.invoker().shouldNotOpen(world, pos, currentState, player, toggledState))) {
+                continue;
+            }
             VoxelShape shape = currentState.getCollisionShape(world, pos, shapeContext);
             //if (!doesCollide(shape, pos, entityBox) && doesCollide(shape, pos, stretched)) {
             //    BlockState toggledState = ToggledBlockState.invoke(world, pos, currentState, player);
@@ -106,7 +112,7 @@ public interface DoorOpening {
             }
             if (!doesCollide(shape, pos, entityBox) && doesCollide(shape, pos, stretched)) {
                 VoxelShape usedShape = toggledState.getCollisionShape(world, pos, shapeContext);
-                if ((doesCollide(usedShape, pos, entityBox) || !doesCollide(usedShape, pos, stretched)) && use(player, pos, eyePos, world, currentState, interactor)) {
+                if ((doesCollide(usedShape, pos, entityBox) || !doesCollide(usedShape, pos, stretched)) && use(player, pos, world, currentState, interactor)) {
                     DoorOpening.OPENED.put(pos.toImmutable(), world.getBlockState(pos));
                 }
             }
@@ -140,19 +146,24 @@ public interface DoorOpening {
     static double absMax(double x, double y) {
         return Math.abs(x) >= Math.abs(y) ? x : y;
     }
-    static boolean use(ClientPlayerEntity player, BlockPos pos, Vec3d eyePos, World world, BlockState state, ClientPlayerInteractionManager interactor) {
-        Vec3d center = pos.toCenterPos();
-        Vec3d end = eyePos.lerp(center, 2);
-        BlockPos immutable = pos.toImmutable();
-        BlockHitResult hitResult = world.raycastBlock(eyePos, end, immutable, state.getRaycastShape(world, pos), state);
-        if (hitResult == null) {
-            hitResult = new BlockHitResult(center, Direction.UP, immutable, false);
-        }
+    static boolean use(ClientPlayerEntity player, BlockPos pos, World world, BlockState state, ClientPlayerInteractionManager interactor) {
+        pos = pos.toImmutable();
+        BlockHitResult hitResult = getHitResult(world, pos, state, player);
         if (interactor.interactBlock(player, Hand.MAIN_HAND, hitResult).isAccepted()) {
             BlockState usedState = world.getBlockState(pos);
             return !state.getEntries().equals(usedState.getEntries());
         }
         return false;
+    }
+    static @NotNull BlockHitResult getHitResult(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        Vec3d centerPos = pos.toCenterPos();
+        Vec3d eyePos = player.getEyePos();
+        Vec3d end = eyePos.lerp(centerPos, 2);
+        BlockHitResult hitResult = world.raycastBlock(eyePos, end, pos, state.getRaycastShape(world, pos), state);
+        if (hitResult == null) {
+            hitResult = new BlockHitResult(centerPos, Direction.UP, pos, false);
+        }
+        return hitResult;
     }
     @ApiStatus.Internal
     static void onStartTick(ClientWorld world) {
@@ -167,7 +178,6 @@ public interface DoorOpening {
         ClientPlayerInteractionManager interactor = client.interactionManager;
         if (interactor == null) return;
         Box entityBox = entity.getBoundingBox();
-        Vec3d eyePos = entity.getEyePos();
         //NO_CLIP.set(DoorOpening.class);
         Vec3d adjusted = entity.adjustMovementForCollisions(movement);
         //NO_CLIP.remove();
@@ -191,7 +201,7 @@ public interface DoorOpening {
             }
             VoxelShape usedShape = toggledState.getCollisionShape(world, pos, shapeContext);
             boolean inBlock = entity == player && (doesCollide(usedShape, pos, swimming) || world.getBlockCollisions(entity, entityBox).iterator().hasNext());//防止把头部的门关了导致玩家的空间被挤压而使站姿变为泳姿（爬行姿态）
-            if ((inBlock || !doesCollide(usedShape, pos, stretched)) && use(player, pos, eyePos, world, state, interactor)) {
+            if ((inBlock || !doesCollide(usedShape, pos, stretched)) && use(player, pos, world, state, interactor)) {
                 iterator.remove();
             }
         }

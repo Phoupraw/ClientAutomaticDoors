@@ -7,7 +7,7 @@
   "injectors": {
     "defaultRequire": 1
   },
-  "client": ["minecraft.MAbstractBlockState", "minecraft.MClientPlayerEntity"],
+  "client": ["minecraft.MAbstractBlockState", "minecraft.MClientPlayerEntity", "minecraft.MClientWorld"],
   "plugin": "phoupraw.mcmod.client_auto_door.mixins.ClientAutomaticDoorsMixinConfigPlugin",
   "priority": 10000
 }
