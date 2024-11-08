@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
 import phoupraw.mcmod.client_auto_door.events.BlockShapeToggler;
+import phoupraw.mcmod.util.MCUtils;
 
 import java.util.Collection;
 import java.util.Set;
@@ -65,6 +66,6 @@ public class OpenToggler extends SnapshotParticipant<Boolean> implements BlockSh
         if (interactor == null) return;
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if (player == null) return;
-        interactor.interactBlock(player, Hand.MAIN_HAND, DoorOpening.getHitResult(world, pos, state, player));
+        interactor.interactBlock(player, Hand.MAIN_HAND, MCUtils.getHitResult(world, pos, state, player));
     }
 }

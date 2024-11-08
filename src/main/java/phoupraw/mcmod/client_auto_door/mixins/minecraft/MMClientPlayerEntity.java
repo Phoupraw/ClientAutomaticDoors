@@ -2,7 +2,6 @@ package phoupraw.mcmod.client_auto_door.mixins.minecraft;
 
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.objects.ObjectLongPair;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -11,7 +10,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.MovementType;
 import net.minecraft.util.function.BooleanBiFunction;
 import net.minecraft.util.math.BlockPos;
@@ -25,9 +23,10 @@ import net.minecraft.world.RedstoneView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.ApiStatus;
 import phoupraw.mcmod.client_auto_door.events.BlockShapeToggler;
-import phoupraw.mcmod.client_auto_door.misc.DoorOpening;
 import phoupraw.mcmod.client_auto_door.mixin.minecraft.AEntity;
 import phoupraw.mcmod.client_auto_door.mixin.minecraft.APlayerEntity;
+import phoupraw.mcmod.client_auto_door.modules.Vanilla;
+import phoupraw.mcmod.util.MCUtils;
 
 import java.util.Collection;
 import java.util.Map;
@@ -35,7 +34,6 @@ import java.util.Map;
 @Environment(EnvType.CLIENT)
 @ApiStatus.Internal
 public interface MMClientPlayerEntity {
-    Map<BlockPos, ObjectLongPair<BlockState>> OPENEDS = new Object2ObjectRBTreeMap<>(DoorOpening.COMPARATOR);
     static void openDoor(ClientPlayerEntity self0, MovementType movementType, Vec3d movement, MinecraftClient client) {
         //Input input = self.input;
         //if (input==null)return;
@@ -44,10 +42,11 @@ public interface MMClientPlayerEntity {
         //ClientPlayerInteractionManager interactor = client.interactionManager;
         //if (interactor == null) return;
         var vehicle = (Entity & AEntity) self.getRootVehicle();
-        if (!DoorOpening.shouldAct(client, self, vehicle)) return;
-        Vec3d movement1 = movement.getY() >= 0 ? movement : new Vec3d(movement.getX(), 0, movement.getZ());
+        if (!Vanilla.shouldAct(client, self, vehicle)) return;
+        double step = Math.max(0, vehicle.invokeAdjustMovementForCollisions(movement.withAxis(Direction.Axis.Y, 0)).getY());
+        Vec3d movement1 = movement.withAxis(Direction.Axis.Y, Math.max(0, movement.getY() - step));
         World world = self.getWorld();
-        Box vehicleBox = vehicle.getBoundingBox();
+        Box vehicleBox = vehicle.getBoundingBox().offset(0, step, 0);
         try (var t = Transaction.openOuter()) {
             var vehicleShape = VoxelShapes.cuboid(vehicleBox);
             Map<BlockPos, VoxelShape> shapes = new Object2ObjectOpenHashMap<>();
@@ -78,7 +77,7 @@ public interface MMClientPlayerEntity {
                     shapes.put(pos, shape);
                 }
             }
-            if (vehicle == self && height > getHeight(self)) {
+            if (vehicle == self && height > MCUtils.getHeight(self)) {
                 return;
             }
             var adjusted = VoxelShapes.cuboid(vehicleBox.stretch(vehicle.invokeAdjustMovementForCollisions(movement)));
@@ -89,40 +88,9 @@ public interface MMClientPlayerEntity {
             }
             t.commit();
             for (BlockPos pos : shapes.keySet()) {
-                OPENEDS.put(pos, ObjectLongPair.of(world.getBlockState(pos), world.getTime()));
+                Vanilla.OPENEDS.put(pos, ObjectLongPair.of(world.getBlockState(pos), world.getTime()));
             }
         }
-    }
-    static float getHeight(ClientPlayerEntity self0) {
-        var self = (ClientPlayerEntity & APlayerEntity) self0;
-        EntityPose pose;
-        if (self.invokeCanChangeIntoPose(EntityPose.SWIMMING)) {
-            EntityPose pose0;
-            if (self.isFallFlying()) {
-                pose0 = EntityPose.FALL_FLYING;
-            } else if (self.isSleeping()) {
-                pose0 = EntityPose.SLEEPING;
-            } else if (self.isSwimming()) {
-                pose0 = EntityPose.SWIMMING;
-            } else if (self.isUsingRiptide()) {
-                pose0 = EntityPose.SPIN_ATTACK;
-            } else if (self.isSneaking() && !self.getAbilities().flying) {
-                pose0 = EntityPose.CROUCHING;
-            } else {
-                pose0 = EntityPose.STANDING;
-            }
-            if (self.isSpectator() || self.hasVehicle() || self.invokeCanChangeIntoPose(pose0)) {
-                pose = pose0;
-            } else if (self.invokeCanChangeIntoPose(EntityPose.CROUCHING)) {
-                pose = EntityPose.CROUCHING;
-            } else {
-                pose = EntityPose.SWIMMING;
-            }
-        } else {
-            pose = self.getPose();
-        }
-        float height1 = self.getDimensions(pose).height();
-        return height1;
     }
     
 }

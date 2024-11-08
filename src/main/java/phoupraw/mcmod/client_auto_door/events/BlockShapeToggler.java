@@ -12,8 +12,7 @@ import phoupraw.mcmod.client_auto_door.constant.CADIDs;
 import java.util.Collection;
 
 public interface BlockShapeToggler {
-    @NotNull
     @UnmodifiableView
-    Collection<BlockPos> toggle(PlayerEntity player, @NotNull TransactionContext transaction);
+    @NotNull Collection<BlockPos> toggle(PlayerEntity player, @NotNull TransactionContext transaction);
     BlockApiLookup<BlockShapeToggler, Entity> LOOKUP = BlockApiLookup.get(CADIDs.of("door_toggler"), BlockShapeToggler.class, Entity.class);
 }
