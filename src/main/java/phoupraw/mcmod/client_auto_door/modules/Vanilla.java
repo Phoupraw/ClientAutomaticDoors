@@ -1,5 +1,7 @@
 package phoupraw.mcmod.client_auto_door.modules;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.objects.ObjectLongPair;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -52,31 +54,43 @@ public interface Vanilla {
         if (!shouldAct(client, player, vehicle)) return;
         var interactor = client.interactionManager;
         if (interactor == null) return;
-        try (var t = Transaction.openOuter()) {
-            float height = player.getHeight();
-            Collection<BlockPos> removed = new ObjectOpenHashSet<>();
-            for (var iter = OPENEDS.entrySet().iterator(); iter.hasNext(); ) {
-                var entry = iter.next();
-                BlockPos pos = entry.getKey();
-                var pair = entry.getValue();
-                long time = pair.secondLong();
-                if (time >= world.getTime()) continue;
-                BlockState state = world.getBlockState(pos);
-                if (state != pair.first()) {
-                    iter.remove();
+        Long2ObjectMap<Map<BlockPos, BlockState>> timeGrouped = new Long2ObjectArrayMap<>(3);
+        for (var entry : OPENEDS.entrySet()) {
+            long time = entry.getValue().secondLong();
+            var openeds = timeGrouped.get(time);
+            if (openeds == null) {
+                openeds = new Object2ObjectRBTreeMap<>(COMPARATOR);
+                timeGrouped.put(time, openeds);
+            }
+            openeds.put(entry.getKey(), entry.getValue().first());
+        }
+        float height = player.getHeight();
+        for (var timeEntry : timeGrouped.long2ObjectEntrySet()) {
+            if (timeEntry.getLongKey() >= world.getTime()) {
+                continue;
+            }
+            try (var t = Transaction.openOuter()) {
+                Collection<BlockPos> removed = new ObjectOpenHashSet<>();
+                for (var iter = timeEntry.getValue().entrySet().iterator(); iter.hasNext(); ) {
+                    var entry = iter.next();
+                    BlockPos pos = entry.getKey();
+                    BlockState state = world.getBlockState(pos);
+                    if (state != entry.getValue()) {
+                        iter.remove();
+                        continue;
+                    }
+                    BlockShapeToggler toggler = BlockShapeToggler.LOOKUP.find(world, pos, state, null, vehicle);
+                    if (toggler == null || toggler.toggle(player, t).isEmpty()) {
+                        continue;
+                    }
+                    removed.add(pos);
+                }
+                if (vehicle == player && height > MCUtils.getHeight(player)) {
                     continue;
                 }
-                BlockShapeToggler toggler = BlockShapeToggler.LOOKUP.find(world, pos, state, null, vehicle);
-                if (toggler == null || toggler.toggle(player, t).isEmpty()) {
-                    continue;
-                }
-                removed.add(pos);
+                OPENEDS.keySet().removeAll(removed);
+                t.commit();
             }
-            if (vehicle == player && height > MCUtils.getHeight(player)) {
-                return;
-            }
-            OPENEDS.keySet().removeAll(removed);
-            t.commit();
         }
     }
 }
