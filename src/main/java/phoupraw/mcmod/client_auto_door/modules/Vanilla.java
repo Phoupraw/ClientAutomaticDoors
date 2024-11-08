@@ -74,9 +74,8 @@ public interface Vanilla {
         }
         float height = player.getHeight();
         for (var timeEntry : timeGrouped.long2ObjectEntrySet()) {
-            if (timeEntry.getLongKey() >= world.getTime()) {
-                continue;
-            }
+            long elapsed = world.getTime() - timeEntry.getLongKey();
+            if (elapsed <= 0) continue;
             try (var t = Transaction.openOuter()) {
                 Collection<BlockPos> removed = new ObjectOpenHashSet<>();
                 for (var iter = timeEntry.getValue().entrySet().iterator(); iter.hasNext(); ) {
@@ -84,7 +83,9 @@ public interface Vanilla {
                     BlockPos pos = entry.getKey();
                     BlockState state = world.getBlockState(pos);
                     if (state != entry.getValue()) {
-                        iter.remove();
+                        if (elapsed > 10) {
+                            iter.remove();
+                        }
                         continue;
                     }
                     BlockShapeToggler toggler = BlockShapeToggler.LOOKUP.find(world, pos, state, null, vehicle);

@@ -88,7 +88,9 @@ public interface MMClientPlayerEntity {
             }
             t.commit();
             for (BlockPos pos : shapes.keySet()) {
-                Vanilla.OPENEDS.put(pos, ObjectLongPair.of(world.getBlockState(pos), world.getTime()));
+                if (!Vanilla.OPENEDS.containsKey(pos)) {
+                    Vanilla.OPENEDS.put(pos, ObjectLongPair.of(world.getBlockState(pos), world.getTime()));
+                }
             }
         }
     }
