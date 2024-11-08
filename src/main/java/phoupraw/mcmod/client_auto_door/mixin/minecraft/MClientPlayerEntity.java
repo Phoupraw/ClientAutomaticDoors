@@ -6,10 +6,8 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.recipebook.ClientRecipeBook;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.MovementType;
-import net.minecraft.stat.StatHandler;
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -24,7 +22,7 @@ import phoupraw.mcmod.client_auto_door.mixins.minecraft.MMClientPlayerEntity;
 abstract class MClientPlayerEntity extends AbstractClientPlayerEntity {
     @Shadow
     @Final
-    public MinecraftClient client;
+    protected MinecraftClient client;
     public MClientPlayerEntity(ClientWorld world, GameProfile profile) {
         super(world, profile);
     }
@@ -32,8 +30,4 @@ abstract class MClientPlayerEntity extends AbstractClientPlayerEntity {
     private void openDoor(MovementType movementType, Vec3d movement, CallbackInfo ci) {
         MMClientPlayerEntity.openDoor((ClientPlayerEntity) (Object) this, movementType, movement, client);
     }
-    @Shadow
-    public abstract StatHandler getStatHandler();
-    @Shadow
-    public abstract ClientRecipeBook getRecipeBook();
 }

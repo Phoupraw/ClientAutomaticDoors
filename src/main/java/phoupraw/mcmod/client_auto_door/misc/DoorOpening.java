@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
@@ -21,11 +22,12 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.*;
 import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.RedstoneView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import phoupraw.mcmod.client_auto_door.config.CADConfigs;
-import phoupraw.mcmod.client_auto_door.events.ShouldNotOpen;
+import phoupraw.mcmod.client_auto_door.events.DoorToggler;
 import phoupraw.mcmod.client_auto_door.events.ToggledBlockState;
 import phoupraw.mcmod.trilevel_config.api.ClientConfigs;
 
@@ -34,8 +36,6 @@ import java.util.Map;
 
 @Environment(EnvType.CLIENT)
 public interface DoorOpening {
-    //TODO 好像有点卡，得删了
-    ThreadLocal<Object> NO_CLIP = new ThreadLocal<>();
     Map<BlockPos, BlockState> OPENED = Object2ObjectMaps.synchronize(new Object2ObjectRBTreeMap<>(Comparator
       .comparingInt(Vec3i::getY)
       .thenComparingInt(Vec3i::getX)
@@ -49,9 +49,7 @@ public interface DoorOpening {
         if (interactor == null) return;
         World world = entity.getWorld();
         Box entityBox = entity.getBoundingBox();
-        NO_CLIP.set(DoorOpening.class);
-        Vec3d adjusted = entity.adjustMovementForCollisions(movement);
-        NO_CLIP.remove();
+        Vec3d adjusted = movement;//entity.adjustMovementForCollisions(movement);
         Box stretched = entityBox.stretch(adjusted);
         ShapeContext shapeContext = ShapeContext.of(entity);
         //for (var iterator = DoorOpening.OPENED.entrySet().iterator(); iterator.hasNext(); ) {
@@ -77,43 +75,62 @@ public interface DoorOpening {
         //    }
         //}
         //Map<BlockPos, Pair<BlockState,BlockState>> collisions = new Object2ObjectOpenHashMap<>();
-        for (BlockPos pos : BlockPos.iterate(
-          (int) Math.floor(stretched.minX) - 1,
-          (int) Math.floor(stretched.minY) - 1,
-          (int) Math.floor(stretched.minZ) - 1,
-          (int) Math.ceil(stretched.maxX) + 1,
-          (int) Math.ceil(stretched.maxY) + 1,
-          (int) Math.ceil(stretched.maxZ) + 1)
-        ) {
-            
-            if (OPENED.containsKey(pos)) {
-                continue;
-            }
-            BlockState currentState = world.getBlockState(pos);
-            BlockState toggledState = ToggledBlockState.invoke(world, pos, currentState, player);
-            if (toggledState.isAir()) {
-                continue;
-            }
-            if (Boolean.TRUE.equals(ShouldNotOpen.EVENT.invoker().shouldNotOpen(world, pos, currentState, player, toggledState))) {
-                continue;
-            }
-            VoxelShape shape = currentState.getCollisionShape(world, pos, shapeContext);
-            //if (!doesCollide(shape, pos, entityBox) && doesCollide(shape, pos, stretched)) {
-            //    BlockState toggledState = ToggledBlockState.invoke(world, pos, currentState, player);
-            //    if (toggledState.isAir()) {
-            //        return;
-            //    }
-            //    //collisions.put(pos.toImmutable(),Pair.of(currentState,toggledState));
-            //}
-            //
-            //VoxelShape shape = currentState.getCollisionShape(world, pos, shapeContext);
-            if (shape.getMax(Direction.Axis.Y) + pos.getY() <= entityBox.minY) {
-                continue;
-            }
-            if (!doesCollide(shape, pos, entityBox) && doesCollide(shape, pos, stretched)) {
-                VoxelShape usedShape = toggledState.getCollisionShape(world, pos, shapeContext);
-                if ((doesCollide(usedShape, pos, entityBox) || !doesCollide(usedShape, pos, stretched)) && use(player, pos, world, currentState, interactor)) {
-                    DoorOpening.OPENED.put(pos.toImmutable(), world.getBlockState(pos));
+        try (var t = Transaction.openOuter()) {
+            nearby:
+            for (BlockPos pos : BlockPos.iterate(
+              (int) Math.floor(stretched.minX) - 1,
+              (int) Math.floor(stretched.minY) - 1,
+              (int) Math.floor(stretched.minZ) - 1,
+              (int) Math.ceil(stretched.maxX) + 1,
+              (int) Math.ceil(stretched.maxY) + 1,
+              (int) Math.ceil(stretched.maxZ) + 1)
+            ) {
+                if (OPENED.containsKey(pos)) continue;
+                BlockState state = world.getBlockState(pos);
+                DoorToggler toggler = DoorToggler.LOOKUP.find(world, pos, state, null, entity);
+                if (toggler == null) continue;
+                try (var t2 = t.openNested()) {
+                    var positions = toggler.toggleDoor(player, t2);
+                    if (positions.isEmpty()) continue;
+                    for (BlockPos pos1 : positions) {
+                        for (Direction direction : RedstoneView.DIRECTIONS) {
+                            BlockPos pos2 = pos1.offset(direction);
+                            if (!world.getBlockState(pos2).canPlaceAt(world, pos2)) {
+                                continue nearby;
+                            }
+                        }
+                    }
+                    for (BlockPos pos1 : positions) {
+                        BlockState state1 = world.getBlockState(pos1);
+                        VoxelShape shape = state1.getCollisionShape(world, pos1, shapeContext);
+                        if (shape.getMax(Direction.Axis.Y) + pos.getY() <= entityBox.minY) {
+                            continue;
+                        }
+                    }
+                    t2.commit();
+                }
+                var newState = state;
+                //if (Boolean.TRUE.equals(ShouldNotOpen.EVENT.invoker().shouldNotOpen(world, pos, state, player, newState))) {
+                //    continue;
+                //}
+                VoxelShape shape = state.getCollisionShape(world, pos, shapeContext);
+                //if (!doesCollide(shape, pos, entityBox) && doesCollide(shape, pos, stretched)) {
+                //    BlockState toggledState = ToggledBlockState.invoke(world, pos, currentState, player);
+                //    if (toggledState.isAir()) {
+                //        return;
+                //    }
+                //    //collisions.put(pos.toImmutable(),Pair.of(currentState,toggledState));
+                //}
+                //
+                //VoxelShape shape = currentState.getCollisionShape(world, pos, shapeContext);
+                if (shape.getMax(Direction.Axis.Y) + pos.getY() <= entityBox.minY) {
+                    continue;
+                }
+                if (!doesCollide(shape, pos, entityBox) && doesCollide(shape, pos, stretched)) {
+                    VoxelShape usedShape = newState.getCollisionShape(world, pos, shapeContext);
+                    if ((doesCollide(usedShape, pos, entityBox) || !doesCollide(usedShape, pos, stretched)) && use(player, pos, world, state, interactor)) {
+                        DoorOpening.OPENED.put(pos.toImmutable(), world.getBlockState(pos));
+                    }
                 }
             }
         }
@@ -179,7 +196,7 @@ public interface DoorOpening {
         if (interactor == null) return;
         Box entityBox = entity.getBoundingBox();
         //NO_CLIP.set(DoorOpening.class);
-        Vec3d adjusted = entity.adjustMovementForCollisions(movement);
+        Vec3d adjusted = movement;//entity.adjustMovementForCollisions(movement);
         //NO_CLIP.remove();
         Box stretched = entityBox.stretch(adjusted);
         ShapeContext shapeContext = ShapeContext.of(entity);

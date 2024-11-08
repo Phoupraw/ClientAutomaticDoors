@@ -9,7 +9,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
-import phoupraw.mcmod.client_auto_door.misc.DoorOpening;
 
 @UtilityClass
 public class Attachment {
@@ -18,11 +17,7 @@ public class Attachment {
     @Environment(EnvType.CLIENT)
     @ApiStatus.Internal
     public static @Nullable Boolean shouldNotOpen(World world, BlockPos pos, BlockState state, PlayerEntity player, BlockState newState) {
-        simulation = true;
-        affected = false;
-        state.onUse(world, player, DoorOpening.getHitResult(world, pos, state, player));
-        state.onUse(world, player, DoorOpening.getHitResult(world, pos, state, player));
-        simulation = false;
+        
         return affected ? true : null;
     }
 }
